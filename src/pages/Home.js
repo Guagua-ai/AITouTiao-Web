@@ -1,42 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { useSpring, animated } from 'react-spring';
 import axios from 'axios';
 import {
     Container,
-    Button,
     Typography,
+    Button,
     Box,
-    CircularProgress,
-    Paper,
     Grid,
     Card,
     CardMedia,
     CardContent,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    DialogContentText,
 } from '@mui/material';
 import Navbar from '../components/Navbar';
-
-
-const fetchArticles = async (since_id = 0, per_page = 10) => {
-    try {
-        const response = await fetch(
-            // `https://news.virtualdynamiclab.com/tweets/pagination?since_id=${since_id}&per_page=${per_page}`
-            `https://news.virtualdynamiclab.com/tweets`
-        );
-        const data = await response.json();
-        return data.articles;
-    } catch (error) {
-        console.error('Failed to fetch articles:', error);
-        return [];
-    }
-};
-
+import StickyPanel from '../components/StickyPanel';
+import { refreshAccessToken, handleLogout } from '../services/auth';
+import { fetchArticles, deleteArticle } from '../services/articles';
+import EditArticle from '../components/EditArticle';
 
 const Home = () => {
     const accessToken = localStorage.getItem('accessToken');
     const [loading, setLoading] = useState(false);
     const [animate, setAnimate] = useState(false);
+    const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+    const [articleToDelete, setArticleToDelete] = useState(null);
     const [user, setUser] = useState({});
     const [articles, setArticles] = useState([]);
+    const [editingArticle, setEditingArticle] = useState(null);
 
     useEffect(() => {
         const userInfo = {
@@ -45,15 +38,15 @@ const Home = () => {
             profileImage: localStorage.getItem('profileImage'),
         };
         setUser(userInfo);
-
-        const loadArticles = async () => {
-            const fetchedArticles = await fetchArticles();
-            setArticles(fetchedArticles);
-        };
         loadArticles();
     }, []);
 
-    const handleButtonClick = async () => {
+    const loadArticles = async () => {
+        const fetchedArticles = await fetchArticles();
+        setArticles(fetchedArticles);
+    };
+
+    const handleClick = async () => {
         setLoading(true);
         try {
             const response = await axios.get('https://news.virtualdynamiclab.com/collect_async', {
@@ -73,7 +66,7 @@ const Home = () => {
                 if (refreshResponse.status === 200) {
                     // Access token refreshed successfully, store the new token and retry the request
                     localStorage.setItem('accessToken', refreshResponse.data.accessToken);
-                    await handleButtonClick();
+                    await handleClick();
                 } else {
                     // Refresh token failed, redirect the user to the login page
                     localStorage.removeItem('accessToken');
@@ -89,97 +82,98 @@ const Home = () => {
         setLoading(false);
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('name');
-        localStorage.removeItem('email');
-        localStorage.removeItem('profileImage');
-        window.location.href = '/';
-    };
-
-    const fadeInUp = useSpring({
-        from: { opacity: 0, transform: 'translate3d(0, 40px, 0)' },
-        to: { opacity: animate ? 1 : 0, transform: animate ? 'translate3d(0, 0, 0)' : 'translate3d(0, 40px, 0)' },
-        config: { duration: 1000 },
-    });
-
-    const refreshAccessToken = async (refreshToken) => {
+    const updateArticle = async (updatedArticle) => {
         try {
-            const response = await axios.post('https://news.virtualdynamiclab.com/auth/refresh', {
-                refreshToken,
-            });
-            return {
-                status: response.status,
-                data: {
-                    accessToken: response.data.accessToken,
-                },
-            };
+            const response = await axios.put(
+                `https://news.virtualdynamiclab.com/tweets/${updatedArticle.id}`,
+                updatedArticle,
+                {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                }
+            );
+            return response.data;
         } catch (error) {
-            if (error.response) {
-                return {
-                    status: error.response.status,
-                    data: null,
-                };
-            } else {
-                return {
-                    status: 500,
-                    data: null,
-                };
-            }
+            console.error('Failed to update article:', error);
+            return null;
+        }
+    };    
+
+    const handleArticleUpdated = async (updatedArticle) => {
+        const updatedData = await updateArticle(updatedArticle);
+        if (updatedData) {
+            setEditingArticle(null);
+
+            // Reload articles after updating the article
+            loadArticles();
         }
     };
 
+    const handleEditArticle = (article) => {
+        setEditingArticle(article);
+    };
+
+    const handleDeleteButtonClick = (articleId) => {
+        setArticleToDelete(articleId);
+        setConfirmDialogOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (articleToDelete) {
+            try {
+                await deleteArticle(articleToDelete.id, accessToken);
+                loadArticles();
+            } catch (error) {
+                console.error('Failed to delete article:', error);
+            }
+
+            setConfirmDialogOpen(false);
+            setArticleToDelete(null);
+        }
+    };    
+
     return (
         <>
+            {/* ... EditArticle and Navbar ... */}
+            {editingArticle && (
+                <EditArticle
+                    article={editingArticle}
+                    onUpdate={handleArticleUpdated}
+                    onClose={() => setEditingArticle(null)}
+                />
+            )}
+
+            {/* Add the confirmation dialog */}
+            <Dialog
+                open={confirmDialogOpen}
+                onClose={() => setConfirmDialogOpen(false)}
+            >
+                <DialogTitle>删除文章</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        确定要删除这篇文章吗？此操作无法撤销。
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setConfirmDialogOpen(false)}>
+                        取消
+                    </Button>
+                    <Button color="error" onClick={handleConfirmDelete}>
+                        删除
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Add the navigation bar */}
             <Navbar user={user} handleLogout={handleLogout} />
+
+            {/* Add the main content */}
             <Container maxWidth="lg">
                 <Grid container>
                     {/* Left side: Welcome and Fetch button */}
                     <Grid item xs={12} sm={4} md={4}>
-                        <Box
-                            sx={{
-                                position: 'sticky',
-                                top: '80px',
-                                minWidth: '100px',
-                                mr: 2,
-                                mt: 4,
-                                display: 'flex',
-                            }}
-                        >
-                            <Paper
-                                elevation={3}
-                                sx={{
-                                    p: 4,
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    width: '100%',
-                                }}
-                            >
-                                <Typography component="h1" variant="h4" gutterBottom>
-                                    欢迎
-                                </Typography>
-                                <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-                                    抓取平台最新咨询
-                                </Typography>
-                                <Box sx={{ mt: 3, mb: 2, display: 'flex', justifyContent: 'center' }}>
-                                    <Button
-                                        variant="contained"
-                                        onClick={handleButtonClick}
-                                        disabled={loading}
-                                        sx={{ mr: 2 }}
-                                    >
-                                        {loading ? <CircularProgress size={24} /> : '获取新闻'}
-                                    </Button>
-                                </Box>
-                                <animated.div style={fadeInUp}>
-                                    <Typography component="h2" variant="h6" sx={{ mt: 2, mb: 2 }}>
-                                        新闻抓取成功！
-                                    </Typography>
-                                </animated.div>
-                            </Paper>
-                        </Box>
+                        <StickyPanel accessToken={accessToken} handleButtonClick={handleClick} />
                     </Grid>
 
                     {/* Right side: Card content */}
@@ -209,6 +203,15 @@ const Home = () => {
                                                         alt={article.title}
                                                         sx={{ objectFit: 'fill', minWidth: '10' }}
                                                     />
+                                                </Grid>
+                                                {/* Add the "Delete" button */}
+                                                <Grid item xs={12} sm={12}>
+                                                    <Button
+                                                        sx={{ width: '50%' }}
+                                                        onClick={() => handleEditArticle(article)}>修改</Button>
+                                                    <Button color="error"
+                                                        sx={{ width: '50%' }}
+                                                        onClick={() => handleDeleteButtonClick(article)}>删除</Button>
                                                 </Grid>
                                             </Grid>
                                         </Card>
