@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     AppBar,
     Toolbar,
@@ -10,11 +11,14 @@ import {
     Avatar,
     Menu,
     MenuItem,
+    Button,
+    Hidden,
 } from '@mui/material';
 import { alpha } from '@mui/system';
 import SearchIcon from '@mui/icons-material/Search';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import SettingsIcon from '@mui/icons-material/Settings';
+import MenuIcon from '@mui/icons-material/Menu';
 import icLauncher from '../assets/ic_launcher.png';
 
 const menuItemStyle = {
@@ -65,6 +69,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 const Navbar = ({ user, handleLogout }) => {
     const [anchorEl, setAnchorEl] = useState(null);
+    const navigate = useNavigate();
 
     const handleClick = (event) => {
         setAnchorEl(event.currentTarget);
@@ -72,6 +77,11 @@ const Navbar = ({ user, handleLogout }) => {
 
     const handleClose = () => {
         setAnchorEl(null);
+    };
+
+    const handleMenuClick = (route) => {
+        navigate(route);
+        handleClose();
     };
 
     return (
@@ -88,6 +98,56 @@ const Navbar = ({ user, handleLogout }) => {
                     AI头条管理员平台
                 </Typography>
                 <Box sx={{ flexGrow: 1 }}></Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
+                    {/* Desktop buttons */}
+                    <Hidden smDown>
+                        <Button color="inherit" onClick={() => navigate('/home')}>
+                            首页
+                        </Button>
+                        <Button
+                            color="inherit"
+                            onClick={() => navigate('/user-management')}
+                        >
+                            用户管理
+                        </Button>
+                    </Hidden>
+
+                    {/* Mobile menu */}
+                    <Hidden mdUp>
+                        <IconButton
+                            edge="end"
+                            color="inherit"
+                            aria-label="menu"
+                            onClick={handleClick}
+                        >
+                            <MenuIcon />
+                        </IconButton>
+                        <Menu
+                            anchorEl={anchorEl}
+                            open={Boolean(anchorEl)}
+                            onClose={handleClose}
+                        >
+                            <MenuItem onClick={() => handleMenuClick('/')}>
+                                首页
+                            </MenuItem>
+                            <MenuItem onClick={() => handleMenuClick('/user-management')}>
+                                用户管理
+                            </MenuItem>
+                            <MenuItem sx={menuItemStyle}>
+                                <SettingsIcon />
+                                设置
+                            </MenuItem>
+                            <MenuItem sx={menuItemStyle} onClick={handleLogout}>
+                                <ExitToAppIcon />
+                                登出
+                            </MenuItem>
+                        </Menu>
+                    </Hidden>
+                </Box>
+
+
+                {/* Search bar */}
                 <Search>
                     <SearchIconWrapper>
                         <SearchIcon />

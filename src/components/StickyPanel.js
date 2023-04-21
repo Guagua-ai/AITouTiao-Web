@@ -5,6 +5,7 @@ import { Button, Typography, Box, CircularProgress, Paper } from '@mui/material'
 const LeftPanel = ({ accessToken, handleButtonClick }) => {
     const [loading, setLoading] = useState(false);
     const [animate, setAnimate] = useState(false);
+    const [error, setError] = useState(false);
 
     const fadeInUp = useSpring({
         from: { opacity: 0, transform: 'translate3d(0, 40px, 0)' },
@@ -14,9 +15,13 @@ const LeftPanel = ({ accessToken, handleButtonClick }) => {
 
     const handleClick = async () => {
         setLoading(true);
-        await handleButtonClick();
+        const successfully = await handleButtonClick();
         setLoading(false);
-        setAnimate(true);
+        if (successfully) {
+            setAnimate(true);
+        } else {
+            setError(true);
+        }
     };
 
     return (
@@ -56,6 +61,11 @@ const LeftPanel = ({ accessToken, handleButtonClick }) => {
                         新闻抓取成功！
                     </Typography>
                 </animated.div>
+                {error && (
+                    <Typography component="h2" variant="h6" sx={{ mt: 2, mb: 2 }}>
+                        新闻抓取失败！
+                    </Typography>
+                )}
             </Paper>
         </Box>
     );

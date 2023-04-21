@@ -23,8 +23,6 @@ import EditArticle from '../components/EditArticle';
 
 const Home = () => {
     const accessToken = localStorage.getItem('accessToken');
-    const [loading, setLoading] = useState(false);
-    const [animate, setAnimate] = useState(false);
     const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
     const [articleToDelete, setArticleToDelete] = useState(null);
     const [user, setUser] = useState({});
@@ -71,7 +69,7 @@ const Home = () => {
         };
         setUser(userInfo);
         loadArticles();
-    }, []);
+    }, [accessToken]);
 
     const loadArticles = async () => {
         const fetchedArticles = await fetchArticles();
@@ -79,16 +77,16 @@ const Home = () => {
     };
 
     const handleButtonClick = async () => {
-        setLoading(true);
         try {
             const response = await axios.get('https://news.virtualdynamiclab.com/admin/collect_async', {
                 headers: {
                     Authorization: `Bearer ${accessToken}`,
                 },
             });
-
-            console.log(response.data);
-            setAnimate(true);
+            if (response.status === 200 || response.status === 201 || response.status === 202) {
+                return true;
+            }
+            return false
         } catch (error) {
             if (error.response && error.response.status === 401) {
                 // Access token expired, try to refresh it
@@ -104,7 +102,7 @@ const Home = () => {
                 console.error('Error fetching news:', error);
             }
         }
-        setLoading(false);
+        return false;
     };
 
     const updateArticle = async (updatedArticle) => {
