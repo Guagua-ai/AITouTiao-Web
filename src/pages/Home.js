@@ -32,6 +32,38 @@ const Home = () => {
     const [editingArticle, setEditingArticle] = useState(null);
 
     useEffect(() => {
+        const validateToken = async () => {
+            if (!accessToken) {
+                window.location.href = '/login';
+                return;
+            }
+            try {
+                const response = await axios.get(
+                    'https://news.virtualdynamiclab.com/auth/validate_token',
+                    {
+                        headers: {
+                            Authorization: `Bearer ${accessToken}`,
+                        },
+                    }
+                );
+                if (response.status !== 200) {
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                if (error.response && error.response.status === 401) {
+                    // Access token expired, try to refresh it
+                    const tokenRefreshed = await handleTokenExpiration();
+                    if (!tokenRefreshed) {
+                        window.location.href = '/login';
+                    }
+                } else {
+                    console.error('Failed to validate token:', error);
+                    window.location.href = '/login';
+                }
+            }
+        };
+
+        validateToken();
         const userInfo = {
             name: localStorage.getItem('name'),
             email: localStorage.getItem('email'),
@@ -46,10 +78,10 @@ const Home = () => {
         setArticles(fetchedArticles);
     };
 
-    const handleClick = async () => {
+    const handleButtonClick = async () => {
         setLoading(true);
         try {
-            const response = await axios.get('https://news.virtualdynamiclab.com/collect_async', {
+            const response = await axios.get('https://news.virtualdynamiclab.com/admin/collect_async', {
                 headers: {
                     Authorization: `Bearer ${accessToken}`,
                 },
@@ -60,18 +92,11 @@ const Home = () => {
         } catch (error) {
             if (error.response && error.response.status === 401) {
                 // Access token expired, try to refresh it
-                const refreshToken = localStorage.getItem('refreshToken');
-                const refreshResponse = await refreshAccessToken(refreshToken);
+                const tokenRefreshed = await handleTokenExpiration();
 
-                if (refreshResponse.status === 200) {
-                    // Access token refreshed successfully, store the new token and retry the request
-                    localStorage.setItem('accessToken', refreshResponse.data.accessToken);
-                    await handleClick();
-                } else {
-                    // Refresh token failed, redirect the user to the login page
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('refreshToken');
-                    window.location.href = '/login';
+                if (tokenRefreshed) {
+                    // Retry the request
+                    await handleButtonClick();
                 }
             } else if (error.response && error.response.status === 422) {
                 console.error('Validation error:', error.response.data);
@@ -85,7 +110,7 @@ const Home = () => {
     const updateArticle = async (updatedArticle) => {
         try {
             const response = await axios.put(
-                `https://news.virtualdynamiclab.com/tweets/${updatedArticle.id}`,
+                `https://news.virtualdynamiclab.com/admin/tweets/${updatedArticle.id}`,
                 updatedArticle,
                 {
                     headers: {
@@ -95,8 +120,36 @@ const Home = () => {
             );
             return response.data;
         } catch (error) {
-            console.error('Failed to update article:', error);
+            if (error.response && error.response.status === 401) {
+                // Access token expired, try to refresh it
+                const tokenRefreshed = await handleTokenExpiration();
+
+                if (tokenRefreshed) {
+                    // Retry the request
+                    return await updateArticle(updatedArticle);
+                }
+            } else {
+                console.error('Failed to update article:', error);
+            }
             return null;
+        }
+    };    
+
+    const handleTokenExpiration = async () => {
+        const refreshToken = localStorage.getItem('refreshToken');
+        const refreshResponse = await refreshAccessToken(refreshToken);
+
+        if (refreshResponse.status === 200) {
+            // Access token refreshed successfully, store the new token
+            localStorage.setItem('accessToken', refreshResponse.data.accessToken);
+            localStorage.setItem('refreshToken', refreshResponse.data.refreshToken);
+            return true;
+        } else {
+            // Refresh token expired or failed, remove tokens and redirect the user to the login page
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            window.location.href = '/login';
+            return false;
         }
     };    
 
@@ -125,7 +178,17 @@ const Home = () => {
                 await deleteArticle(articleToDelete.id, accessToken);
                 loadArticles();
             } catch (error) {
-                console.error('Failed to delete article:', error);
+                if (error.response && error.response.status === 401) {
+                    // Access token expired, try to refresh it
+                    const tokenRefreshed = await handleTokenExpiration();
+
+                    if (tokenRefreshed) {
+                        // Retry the request
+                        await handleConfirmDelete();
+                    }
+                } else {
+                    console.error('Failed to delete article:', error);
+                }
             }
 
             setConfirmDialogOpen(false);
@@ -173,7 +236,7 @@ const Home = () => {
                 <Grid container>
                     {/* Left side: Welcome and Fetch button */}
                     <Grid item xs={12} sm={4} md={4}>
-                        <StickyPanel accessToken={accessToken} handleButtonClick={handleClick} />
+                        <StickyPanel accessToken={accessToken} handleButtonClick={handleButtonClick} />
                     </Grid>
 
                     {/* Right side: Card content */}

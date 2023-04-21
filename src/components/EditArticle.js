@@ -52,9 +52,18 @@ const EditArticle = ({ article, onUpdate, onClose }) => {
                     rows={4}
                 />
                 <TextField
+                    margin='dense'
+                    name='displayname'
+                    label='作者'
+                    type='text'
+                    value={updatedArticle.displayname}
+                    onChange={handleChange}
+                    fullWidth
+                />
+                <TextField
                     margin="dense"
                     name="author"
-                    label="作者"
+                    label="作者用户名"
                     type="text"
                     value={updatedArticle.author}
                     onChange={handleChange}
@@ -67,6 +76,16 @@ const EditArticle = ({ article, onUpdate, onClose }) => {
                     type="text"
                     value={updatedArticle.urlToImage}
                     onChange={handleChange}
+                    fullWidth
+                />
+                <TextField
+                    margin="dense"
+                    name="source_url"
+                    label="来源网址"
+                    type="text"
+                    value={updatedArticle.url}
+                    onChange={handleChange}
+                    disabled
                     fullWidth
                 />
             </DialogContent>
