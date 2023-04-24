@@ -19,10 +19,10 @@ const fetchArticles = async (since_id = 0, per_page = 10) => {
     }
 };
 
-const deleteArticle = async (articleId, accessToken) => {
+const deleteArticle = async (articleId) => {
     await axios.delete(`https://news.virtualdynamiclab.com/admin/tweets/${articleId}`, {
         headers: {
-            Authorization: `Bearer ${accessToken}`,
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
     });
 };
