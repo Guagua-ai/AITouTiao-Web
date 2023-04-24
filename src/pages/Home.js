@@ -173,7 +173,7 @@ const Home = () => {
     const handleConfirmDelete = async () => {
         if (articleToDelete) {
             try {
-                await deleteArticle(articleToDelete.id, accessToken);
+                await deleteArticle(articleToDelete.id);
                 loadArticles();
             } catch (error) {
                 if (error.response && error.response.status === 401) {

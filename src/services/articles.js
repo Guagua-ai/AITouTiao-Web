@@ -1,23 +1,16 @@
 import axios from 'axios';
 
-const TWEETS_GET_URL = 'https://news.virtualdynamiclab.com/tweets';
+const TWEETS_GET_URL = 'https://news.virtualdynamiclab.com/admin/tweets';
 const TWEETS_GET_PAGINATION_URL = 'https://news.virtualdynamiclab.com/tweets/pagination';
 
-const fetchArticles = async (since_id = 0, per_page = 10, accessToken = null) => {
+const fetchArticles = async (since_id = 0, per_page = 10) => {
     try {
-        let response;
-        if (accessToken == null) {
-            response = await axios.get(
-                TWEETS_GET_URL,
-            );
-        } else {
-            response = await axios.get(
-                TWEETS_GET_URL, {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                },
-            });
-        }
+        const response = await axios.get(
+            TWEETS_GET_URL, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+            },
+        });
         const data = response.data;
         return data.articles;
     } catch (error) {

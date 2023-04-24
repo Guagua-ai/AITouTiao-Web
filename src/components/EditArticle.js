@@ -49,7 +49,7 @@ const EditArticle = ({ article, onUpdate, onClose }) => {
                     onChange={handleChange}
                     fullWidth
                     multiline
-                    rows={4}
+                    rows={10}
                 />
                 <TextField
                     margin='dense'
@@ -86,6 +86,15 @@ const EditArticle = ({ article, onUpdate, onClose }) => {
                     value={updatedArticle.url}
                     onChange={handleChange}
                     disabled
+                    fullWidth
+                />
+                <TextField
+                    margin="dense"
+                    name="publishedAt"
+                    label="发布时间"
+                    type="text"
+                    value={updatedArticle.publishedAt}
+                    onChange={handleChange}
                     fullWidth
                 />
             </DialogContent>
