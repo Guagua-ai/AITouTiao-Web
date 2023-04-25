@@ -88,15 +88,6 @@ const EditArticle = ({ article, onUpdate, onClose }) => {
                     disabled
                     fullWidth
                 />
-                <TextField
-                    margin="dense"
-                    name="publishedAt"
-                    label="发布时间"
-                    type="text"
-                    value={updatedArticle.publishedAt}
-                    onChange={handleChange}
-                    fullWidth
-                />
             </DialogContent>
             <DialogActions>
             <Button onClick={onClose} disabled={loading}>

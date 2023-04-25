@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useSpring, animated } from 'react-spring';
 import { Button, Typography, Box, CircularProgress, Paper } from '@mui/material';
 
-const LeftPanel = ({ accessToken, handleButtonClick }) => {
+const LeftPanel = ({ handleButtonClick, onAddArticle }) => {
     const [loading, setLoading] = useState(false);
     const [animate, setAnimate] = useState(false);
     const [error, setError] = useState(false);
@@ -54,6 +54,9 @@ const LeftPanel = ({ accessToken, handleButtonClick }) => {
                 <Box sx={{ mt: 3, mb: 2, display: 'flex', justifyContent: 'center' }}>
                     <Button variant="contained" onClick={handleClick} disabled={loading} sx={{ mr: 2 }}>
                         {loading ? <CircularProgress size={24} /> : '获取新闻'}
+                    </Button>
+                    <Button variant="contained" onClick={onAddArticle}>
+                        添加文章
                     </Button>
                 </Box>
                 <animated.div style={fadeInUp}>

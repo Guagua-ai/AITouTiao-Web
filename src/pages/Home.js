@@ -20,6 +20,7 @@ import StickyPanel from '../components/StickyPanel';
 import { refreshAccessToken, handleLogout } from '../services/auth';
 import { fetchArticles, deleteArticle } from '../services/articles';
 import EditArticle from '../components/EditArticle';
+import AddArticle from '../components/AddArticle';
 
 const Home = () => {
     const accessToken = localStorage.getItem('accessToken');
@@ -28,6 +29,7 @@ const Home = () => {
     const [user, setUser] = useState({});
     const [articles, setArticles] = useState([]);
     const [editingArticle, setEditingArticle] = useState(null);
+    const [addingArticle, setAddingArticle] = useState(null);
 
     useEffect(() => {
         const validateToken = async () => {
@@ -105,11 +107,51 @@ const Home = () => {
         return false;
     };
 
+    const addArticle = async (newArticle) => {
+        try {
+            const response = await axios.post(
+                'https://news.virtualdynamiclab.com/admin/tweets',
+                newArticle,
+                {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`,
+                    },
+                }
+            );
+            return response.data;
+        } catch (error) {
+            if (error.response && error.response.status === 401) {
+                // Access token expired, try to refresh it
+                const tokenRefreshed = await handleTokenExpiration();
+                
+                if (tokenRefreshed) {
+                    // Retry the request
+                    return await addArticle(newArticle);
+                }
+            } else if (error.response && error.response.status === 422) {
+                console.error('Validation error:', error.response.data);
+            } else {
+                console.error('Error adding article:', error);
+            }
+            return null;
+        }
+    };
+
     const updateArticle = async (updatedArticle) => {
         try {
             const response = await axios.put(
                 `https://news.virtualdynamiclab.com/admin/tweets/${updatedArticle.id}`,
-                updatedArticle,
+                {
+                    "title": updatedArticle.title,
+                    "description": updatedArticle.description,
+                    "author": updatedArticle.author,
+                    "displayname": updatedArticle.displayname,
+                    "url": updatedArticle.url,
+                    "urlToImage": updatedArticle.urlToImage,
+                    "content": updatedArticle.content,
+                    "source_id": updatedArticle.source.id,
+                    "source_name": updatedArticle.source.name,
+                },
                 {
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
@@ -165,6 +207,16 @@ const Home = () => {
         setEditingArticle(article);
     };
 
+    const handleArticleAdded = async (addedArticle) => {
+        const addedData = await addArticle(addedArticle);
+        if (addedData) {
+            setAddingArticle(null);
+
+            // Reload articles after adding the article
+            loadArticles();
+        }
+    };
+
     const handleDeleteButtonClick = (articleId) => {
         setArticleToDelete(articleId);
         setConfirmDialogOpen(true);
@@ -196,6 +248,14 @@ const Home = () => {
 
     return (
         <>
+            {/* Add the AddArticle component */}
+            {addingArticle && (
+                <AddArticle
+                    onAdd={handleArticleAdded}
+                    onClose={() => setAddingArticle(false)}
+                />
+            )}
+            
             {/* ... EditArticle and Navbar ... */}
             {editingArticle && (
                 <EditArticle
@@ -234,7 +294,7 @@ const Home = () => {
                 <Grid container>
                     {/* Left side: Welcome and Fetch button */}
                     <Grid item xs={12} sm={4} md={4}>
-                        <StickyPanel accessToken={accessToken} handleButtonClick={handleButtonClick} />
+                        <StickyPanel handleButtonClick={handleButtonClick} onAddArticle={() => setAddingArticle(true)} />
                     </Grid>
 
                     {/* Right side: Card content */}

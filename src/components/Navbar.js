@@ -16,6 +16,8 @@ import {
 } from '@mui/material';
 import { alpha } from '@mui/system';
 import SearchIcon from '@mui/icons-material/Search';
+import HomeIcon from '@mui/icons-material/Home';
+import PersonIcon from '@mui/icons-material/Person';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import SettingsIcon from '@mui/icons-material/Settings';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -87,16 +89,18 @@ const Navbar = ({ user, handleLogout }) => {
     return (
         <AppBar position="sticky" top="64px">
             <Toolbar>
-                <IconButton edge="start" color="inherit" aria-label="icon">
-                    <img src={icLauncher} alt="App Icon" height="32" width="32" />
-                </IconButton>
-                <Typography
-                    variant="subtitle1"
-                    component="div"
-                    sx={{ flexGrow: 0, marginRight: 1 }}
-                >
-                    AI头条管理员平台
-                </Typography>
+                <Hidden smDown>
+                    <IconButton edge="start" color="inherit" aria-label="icon">
+                        <img src={icLauncher} alt="App Icon" height="32" width="32" />
+                    </IconButton>
+                    <Typography
+                        variant="subtitle1"
+                        component="div"
+                        sx={{ flexGrow: 0, marginRight: 1 }}
+                    >
+                        AI头条管理员平台
+                    </Typography>
+                </Hidden>
                 <Box sx={{ flexGrow: 1 }}></Box>
 
                 <Box sx={{ display: 'flex', alignItems: 'flex-start' }}>
@@ -112,38 +116,6 @@ const Navbar = ({ user, handleLogout }) => {
                             用户管理
                         </Button>
                     </Hidden>
-
-                    {/* Mobile menu */}
-                    <Hidden mdUp>
-                        <IconButton
-                            edge="end"
-                            color="inherit"
-                            aria-label="menu"
-                            onClick={handleClick}
-                        >
-                            <MenuIcon />
-                        </IconButton>
-                        <Menu
-                            anchorEl={anchorEl}
-                            open={Boolean(anchorEl)}
-                            onClose={handleClose}
-                        >
-                            <MenuItem onClick={() => handleMenuClick('/')}>
-                                首页
-                            </MenuItem>
-                            <MenuItem onClick={() => handleMenuClick('/user-management')}>
-                                用户管理
-                            </MenuItem>
-                            <MenuItem sx={menuItemStyle}>
-                                <SettingsIcon />
-                                设置
-                            </MenuItem>
-                            <MenuItem sx={menuItemStyle} onClick={handleLogout}>
-                                <ExitToAppIcon />
-                                登出
-                            </MenuItem>
-                        </Menu>
-                    </Hidden>
                 </Box>
 
 
@@ -157,35 +129,76 @@ const Navbar = ({ user, handleLogout }) => {
                         inputProps={{ 'aria-label': 'search' }}
                     />
                 </Search>
+
                 <Box sx={{ flexGrow: 1 }}></Box>
-                <Avatar
-                    src={user.profileImage}
-                    alt={user.name}
-                    sx={{ mr: 2 }}
-                    onClick={handleClick}
-                    style={{ cursor: 'pointer' }}
-                />
-                <Menu
-                    anchorEl={anchorEl}
-                    open={Boolean(anchorEl)}
-                    onClose={handleClose}
-                >
-                    <MenuItem sx={menuItemStyle}>
-                        <SettingsIcon />
-                        Settings
-                    </MenuItem>
-                    <MenuItem sx={menuItemStyle} onClick={handleLogout}>
-                        <ExitToAppIcon />
-                        Logout
-                    </MenuItem>
-                </Menu>
-                <Typography
-                    variant="subtitle1"
-                    component="div"
-                    sx={{ flexGrow: 0, marginRight: 1 }}
-                >
-                    {user.name}
-                </Typography>
+                <Hidden smDown>
+                    <Button color="inherit" onClick={handleClick} >
+                        <Box sx={{ flexGrow: 1 }}></Box>
+                        <Avatar
+                            src={user.profileImage}
+                            alt={user.name}
+                            sx={{ mr: 1 }}
+                            style={{ cursor: 'pointer' }}
+                        />
+                        <Typography
+                            variant="subtitle1"
+                            component="div"
+                            sx={{ flexGrow: 0, marginRight: 1 }}
+                        >
+                            {user.name}
+                        </Typography>
+                    </Button>
+                    <Menu
+                        anchorEl={anchorEl}
+                        open={Boolean(anchorEl)}
+                        onClose={handleClose}
+                    >
+                        <MenuItem sx={menuItemStyle}>
+                            <SettingsIcon />
+                            设置
+                        </MenuItem>
+                        <MenuItem sx={menuItemStyle} onClick={handleLogout}>
+                            <ExitToAppIcon />
+                            登出
+                        </MenuItem>
+                    </Menu>
+                </Hidden>
+
+                
+                {/* Mobile menu */}
+                <Hidden mdUp>
+                    <IconButton
+                        edge="end"
+                        color="inherit"
+                        aria-label="menu"
+                        onClick={handleClick}
+                        sx={{ width: 56 }} // Increase the width here
+                    >
+                        <MenuIcon />
+                    </IconButton>
+                    <Menu
+                        anchorEl={anchorEl}
+                        open={Boolean(anchorEl)}
+                        onClose={handleClose}
+                    >
+                        <MenuItem sx={menuItemStyle} onClick={() => handleMenuClick('/home')}>
+                            <HomeIcon />
+                            首页
+                        </MenuItem>
+                        <MenuItem sx={menuItemStyle} onClick={() => handleMenuClick('/user-management')}>
+                            <PersonIcon />
+                            用户
+                        </MenuItem>
+                        <MenuItem sx={menuItemStyle}>
+                            <SettingsIcon />
+                            设置
+                        </MenuItem>
+                        <MenuItem sx={menuItemStyle} onClick={handleLogout}>
+                            <ExitToAppIcon />
+                            登出
+                        </MenuItem>
+                    </Menu>
+                </Hidden>
             </Toolbar>
         </AppBar>
     );
