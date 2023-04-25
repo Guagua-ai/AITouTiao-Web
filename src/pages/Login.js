@@ -45,9 +45,9 @@ const authenticateUser = async (email, password) => {
             status: response.status,
             data: {
                 name: response.data.user.name,
-                accessToken: response.data.user.access_token,
-                refreshToken: response.data.user.refresh_token,
-                profileImage: response.data.user.profile_image,
+                accessToken: response.data.user.accessToken,
+                refreshToken: response.data.user.refreshToken,
+                profileImage: response.data.user.profileImage,
                 email: response.data.user.email,
             },
         };
