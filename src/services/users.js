@@ -1,13 +1,17 @@
 import axios from 'axios';
 import { roleToEnglish } from '../utils/i18n';
+import { USERS_API_URL } from './constants';
 
 const fetchUsers = async () => {
     try {
-        const response = await axios.get('https://news.virtualdynamiclab.com/admin/users', {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        const response = await axios.get(
+            USERS_API_URL, 
+            {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                },
             },
-        });
+        );
 
         return response.data.users;
     } catch (error) {
@@ -26,7 +30,7 @@ const updateUser = async (user) => {
     };
     try {
         await axios.put(
-            `https://news.virtualdynamiclab.com/admin/user/${user.id}`,
+            USERS_API_URL +  `/${user.id}`,
             updatedUser,
             {
                 headers: {
@@ -40,7 +44,8 @@ const updateUser = async (user) => {
 };
 
 const deleteUser = async (userId) => {
-    await axios.delete(`https://news.virtualdynamiclab.com/admin/user/${userId}`, {
+    await axios.delete(
+        USERS_API_URL + `/${userId}`, {
         headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
@@ -50,7 +55,7 @@ const deleteUser = async (userId) => {
 const promoteUser = async (userId) => {
     try {
         await axios.post(
-            `https://news.virtualdynamiclab.com/admin/user/promote/${userId}`,
+            USERS_API_URL + `/promote/${userId}`,
             {},
             {
                 headers: {
@@ -72,7 +77,7 @@ const demoteUser = async (user) => {
     };
     try {
         await axios.put(
-            `https://news.virtualdynamiclab.com/admin/user/${user.id}`,
+            USERS_API_URL + `/${user.id}`,
             updatedUser,
             {
                 headers: {

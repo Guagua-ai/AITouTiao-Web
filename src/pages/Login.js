@@ -10,8 +10,8 @@ import {
     CircularProgress,
     Paper,
 } from '@mui/material';
-import axios from 'axios';
 import icLauncher from '../assets/ic_launcher.png';
+import { handleLogin } from '../services/auth';
 
 const styles = {
     paper: {
@@ -35,38 +35,6 @@ const styles = {
     },
 };
 
-const authenticateUser = async (email, password) => {
-    try {
-        const response = await axios.post('https://news.virtualdynamiclab.com/auth/login', {
-            email,
-            password,
-        });
-        return {
-            status: response.status,
-            data: {
-                name: response.data.user.name,
-                accessToken: response.data.user.accessToken,
-                refreshToken: response.data.user.refreshToken,
-                profileImage: response.data.user.profileImage,
-                email: response.data.user.email,
-            },
-        };
-    } catch (error) {
-        // Handle errors, e.g., network issues or wrong credentials
-        if (error.response) {
-            return {
-                status: error.response.status,
-                data: null,
-            };
-        } else {
-            return {
-                status: 500,
-                data: null,
-            };
-        }
-    }
-};
-
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -80,7 +48,7 @@ const Login = () => {
         setLoading(true);
         setError('');
 
-        const response = await authenticateUser(email, password);
+        const response = await handleLogin(email, password);
         if (response.status === 200) {
             if (!response.data.accessToken) {
                 setLoading(false);

@@ -17,13 +17,12 @@ import {
 } from '@mui/material';
 import Navbar from '../components/Navbar';
 import StickyPanel from '../components/StickyPanel';
-import { refreshAccessToken, handleLogout } from '../services/auth';
-import { fetchArticles, deleteArticle } from '../services/articles';
+import { refreshAccessToken, validateAccessToken, handleLogout } from '../services/auth';
+import { collectArticles, fetchArticles, updateArticle, deleteArticle } from '../services/articles';
 import EditArticle from '../components/EditArticle';
 import AddArticle from '../components/AddArticle';
 
 const Home = () => {
-    const accessToken = localStorage.getItem('accessToken');
     const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
     const [articleToDelete, setArticleToDelete] = useState(null);
     const [user, setUser] = useState({});
@@ -33,19 +32,12 @@ const Home = () => {
 
     useEffect(() => {
         const validateToken = async () => {
-            if (!accessToken) {
+            if (!localStorage.getItem('accessToken')) {
                 window.location.href = '/login';
                 return;
             }
             try {
-                const response = await axios.get(
-                    'https://news.virtualdynamiclab.com/auth/validate_token',
-                    {
-                        headers: {
-                            Authorization: `Bearer ${accessToken}`,
-                        },
-                    }
-                );
+                const response = await validateAccessToken();
                 if (response.status !== 200) {
                     window.location.href = '/login';
                 }
@@ -71,7 +63,7 @@ const Home = () => {
         };
         setUser(userInfo);
         loadArticles();
-    }, [accessToken]);
+    }, []);
 
     const loadArticles = async () => {
         const fetchedArticles = await fetchArticles();
@@ -79,38 +71,13 @@ const Home = () => {
     };
 
     const handleButtonClick = async () => {
-        try {
-            const response = await axios.get('https://news.virtualdynamiclab.com/admin/collect_async', {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                },
-            });
-            if (response.status === 200 || response.status === 201 || response.status === 202) {
-                return true;
-            }
-            return false
-        } catch (error) {
-            if (error.response && error.response.status === 401) {
-                // Access token expired, try to refresh it
-                const tokenRefreshed = await handleTokenExpiration();
-
-                if (tokenRefreshed) {
-                    // Retry the request
-                    await handleButtonClick();
-                }
-            } else if (error.response && error.response.status === 422) {
-                console.error('Validation error:', error.response.data);
-            } else {
-                console.error('Error fetching news:', error);
-            }
-        }
-        return false;
+        return await collectArticles(handleTokenExpiration, handleButtonClick);
     };
 
     const addArticle = async (newArticle) => {
         try {
             const response = await axios.post(
-                'https://news.virtualdynamiclab.com/admin/tweets',
+                TWEETS_API_URL,
                 newArticle,
                 {
                     headers: {
@@ -137,44 +104,6 @@ const Home = () => {
         }
     };
 
-    const updateArticle = async (updatedArticle) => {
-        try {
-            const response = await axios.put(
-                `https://news.virtualdynamiclab.com/admin/tweets/${updatedArticle.id}`,
-                {
-                    "title": updatedArticle.title,
-                    "description": updatedArticle.description,
-                    "author": updatedArticle.author,
-                    "displayname": updatedArticle.displayname,
-                    "url": updatedArticle.url,
-                    "urlToImage": updatedArticle.urlToImage,
-                    "content": updatedArticle.content,
-                    "source_id": updatedArticle.source.id,
-                    "source_name": updatedArticle.source.name,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`,
-                    },
-                }
-            );
-            return response.data;
-        } catch (error) {
-            if (error.response && error.response.status === 401) {
-                // Access token expired, try to refresh it
-                const tokenRefreshed = await handleTokenExpiration();
-
-                if (tokenRefreshed) {
-                    // Retry the request
-                    return await updateArticle(updatedArticle);
-                }
-            } else {
-                console.error('Failed to update article:', error);
-            }
-            return null;
-        }
-    };    
-
     const handleTokenExpiration = async () => {
         const refreshToken = localStorage.getItem('refreshToken');
         const refreshResponse = await refreshAccessToken(refreshToken);
@@ -194,7 +123,7 @@ const Home = () => {
     };    
 
     const handleArticleUpdated = async (updatedArticle) => {
-        const updatedData = await updateArticle(updatedArticle);
+        const updatedData = await updateArticle(handleTokenExpiration, updatedArticle);
         if (updatedData) {
             setEditingArticle(null);
 
