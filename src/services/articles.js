@@ -28,14 +28,46 @@ const collectArticles = async (handleTokenExpiration, handleButtonClick) => {
     return false;
 };
 
+const addArticle = async (handleTokenExpiration, newArticle) => {
+    try {
+        const response = await axios.post(
+            TWEETS_API_URL,
+            newArticle,
+            {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                },
+            }
+        );
+        return response.data;
+    } catch (error) {
+        if (error.response && error.response.status === 401) {
+            // Access token expired, try to refresh it
+            const tokenRefreshed = await handleTokenExpiration();
+
+            if (tokenRefreshed) {
+                // Retry the request
+                return await addArticle(newArticle);
+            }
+        } else if (error.response && error.response.status === 422) {
+            console.error('Validation error:', error.response.data);
+        } else {
+            console.error('Error adding article:', error);
+        }
+        return null;
+    }
+};
+
 const fetchArticles = async (since_id = 0, per_page = 10) => {
     try {
         const response = await axios.get(
-            TWEETS_API_URL, {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-            },
-        });
+            TWEETS_API_URL,
+            {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                },
+            }
+        );
         const data = response.data;
         return data.articles;
     } catch (error) {
@@ -96,44 +128,71 @@ const deleteArticle = async (articleId) => {
     }
 };
 
-const lgtmArticle = async (articleId) => {
+const lgtmArticle = async (handleTokenExpiration, articleId) => {
     try {
         const response = await axios.put(
-            TWEETS_API_URL + `/${articleId}/lgtm`, {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-            },
-        });
+            TWEETS_API_URL + `/${articleId}/lgtm`,
+            {},
+            {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                },
+            }
+        );
         if (response.status === 200) {
             return response.data;
         }
         return null;
     } catch (error) {
-        console.error('Failed to approve article:', error);
+        if (error.response && error.response.status === 401) {
+            // Access token expired, try to refresh it
+            const tokenRefreshed = await handleTokenExpiration();
+
+            if (tokenRefreshed) {
+                // Retry the request
+                return await lgtmArticle(handleTokenExpiration, articleId);
+            }
+        } else {
+            console.error('Failed to update article:', error);
+        }
         return null;
     }
 };
 
-const flagArticle = async (articleId) => {
+const flagArticle = async (handleTokenExpiration, articleId) => {
     try {
         const response = await axios.put(
-            TWEETS_API_URL + `/${articleId}/flag`, {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-            },
-        });
+            TWEETS_API_URL + `/${articleId}/flag`,
+            {},
+            {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                },
+            }
+        );
         if (response.status === 200) {
             return response.data;
         }
         return null;
     } catch (error) {
-        console.error('Failed to flag article:', error);
+        if (error.response && error.response.status === 401) {
+            // Access token expired, try to refresh it
+            const tokenRefreshed = await handleTokenExpiration();
+
+            if (tokenRefreshed) {
+                // Retry the request
+                return await flagArticle(handleTokenExpiration, articleId);
+            }
+        } else {
+            console.error('Failed to update article:', error);
+        }
         return null;
     }
 };
 
 export {
     collectArticles,
+    addArticle,
     fetchArticles,
     updateArticle,
     deleteArticle,

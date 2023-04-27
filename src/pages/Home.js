@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import {
     Container,
     Typography,
@@ -25,12 +24,13 @@ import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import PublicIcon from '@mui/icons-material/Public';
 import LockIcon from '@mui/icons-material/Lock';
+import Alert from '@mui/material/Alert';
+
 
 import Navbar from '../components/Navbar';
 import StickyPanel from '../components/StickyPanel';
-import { TWEETS_API_URL } from '../services/constants';
 import { refreshAccessToken, validateAccessToken, handleLogout } from '../services/auth';
-import { collectArticles, fetchArticles, updateArticle, deleteArticle, lgtmArticle, flagArticle } from '../services/articles';
+import { collectArticles, addArticle, fetchArticles, updateArticle, deleteArticle, lgtmArticle, flagArticle } from '../services/articles';
 
 import EditArticle from '../components/EditArticle';
 import AddArticle from '../components/AddArticle';
@@ -45,6 +45,7 @@ const Home = () => {
     const [approveArticle, setApproveArticle] = useState(null);
     const [reviewArticle, setReviewArticle] = useState(null);
     const [articleToDelete, setArticleToDelete] = useState(null);
+    const [showAlert, setShowAlert] = useState(false);
 
     useEffect(() => {
         const validateToken = async () => {
@@ -98,36 +99,6 @@ const Home = () => {
         return await collectArticles(handleTokenExpiration, handleCollectAsync);
     };
 
-    const addArticle = async (newArticle) => {
-        try {
-            const response = await axios.post(
-                TWEETS_API_URL,
-                newArticle,
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-                    },
-                }
-            );
-            return response.data;
-        } catch (error) {
-            if (error.response && error.response.status === 401) {
-                // Access token expired, try to refresh it
-                const tokenRefreshed = await handleTokenExpiration();
-                
-                if (tokenRefreshed) {
-                    // Retry the request
-                    return await addArticle(newArticle);
-                }
-            } else if (error.response && error.response.status === 422) {
-                console.error('Validation error:', error.response.data);
-            } else {
-                console.error('Error adding article:', error);
-            }
-            return null;
-        }
-    };
-
     const handleTokenExpiration = async () => {
         const refreshToken = localStorage.getItem('refreshToken');
         const refreshResponse = await refreshAccessToken(refreshToken);
@@ -146,8 +117,8 @@ const Home = () => {
         }
     };    
 
-    const handleArticleUpdated = async (updatedArticle) => {
-        const updatedData = await updateArticle(handleTokenExpiration, updatedArticle);
+    const handleArticleUpdated = async (article) => {
+        const updatedData = await updateArticle(handleTokenExpiration, article);
         if (updatedData) {
             setEditingArticle(null);
             loadArticles();
@@ -158,27 +129,37 @@ const Home = () => {
         setEditingArticle(article);
     };
 
-    const handleArticleAdded = async (addedArticle) => {
-        const addedData = await addArticle(addedArticle);
+    const handleArticleAdded = async (article) => {
+        const addedData = await addArticle(article);
         if (addedData) {
             setAddingArticle(null);
             loadArticles();
         }
     };
 
-    const handleLgtmAtricle = async (articleId) => {
-        const updatedData = await lgtmArticle(handleTokenExpiration, articleId);
+    const handleLgtmAtricle = async (article) => {
+        const updatedData = await lgtmArticle(handleTokenExpiration, article.id);
         if (updatedData) {
             setApproveArticle(null);
             loadArticles();
+        } else {
+            setShowAlert(true);
+            setTimeout(() => {
+                setShowAlert(false);
+            }, 3000);
         }
     };
     
-    const handleReviewArticle = async (articleId) => {
-        const updatedData = await flagArticle(handleTokenExpiration, articleId);
+    const handleReviewArticle = async (article) => {
+        const updatedData = await flagArticle(handleTokenExpiration, article.id);
         if (updatedData) {
             setReviewArticle(null);
             loadArticles();
+        } else {
+            setShowAlert(true);
+            setTimeout(() => {
+                setShowAlert(false);
+            }, 3000);
         }
     };
 
@@ -326,7 +307,7 @@ const Home = () => {
                                                     <Button 
                                                         color="warning"
                                                         sx={{ width: '25%' }}
-                                                        onClick={() => handleLgtmAtricle(article)}
+                                                        onClick={() => handleReviewArticle(article)}
                                                     >
                                                         <ThumbDownIcon sx={{"marginRight": 1}} />
                                                             审核
@@ -359,6 +340,14 @@ const Home = () => {
                     </Grid>
                 </Grid>
             </Container>
+
+            {/* Add the alert */}
+            {showAlert && <Alert
+                sx={{
+                    position: 'sticky',
+                    bottom: 0,
+                }}
+                severity="error">Operation failed!</Alert>}
         </>
     );
 };
