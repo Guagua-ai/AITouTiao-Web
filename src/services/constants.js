@@ -1,6 +1,6 @@
 const LOCAL_ENDPOINT = 'http://localhost:8080';
 const REMOTE_ENDPOINT = 'https://news.virtualdynamiclab.com';
-const ENDPOINT = LOCAL_ENDPOINT;
+const ENDPOINT = REMOTE_ENDPOINT;
 
 const AUTH_API_URL = ENDPOINT + '/auth';
 const AUTH_API_REFRESH_URL = ENDPOINT + '/auth/refresh';
