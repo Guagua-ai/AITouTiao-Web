@@ -14,21 +14,37 @@ import {
     DialogContent,
     DialogActions,
     DialogContentText,
+    Menu,
+    MenuItem,
 } from '@mui/material';
+
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
+import ThumbDownIcon from '@mui/icons-material/ThumbDown';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import PublicIcon from '@mui/icons-material/Public';
+import LockIcon from '@mui/icons-material/Lock';
+
 import Navbar from '../components/Navbar';
 import StickyPanel from '../components/StickyPanel';
+import { TWEETS_API_URL } from '../services/constants';
 import { refreshAccessToken, validateAccessToken, handleLogout } from '../services/auth';
-import { collectArticles, fetchArticles, updateArticle, deleteArticle } from '../services/articles';
+import { collectArticles, fetchArticles, updateArticle, deleteArticle, lgtmArticle, flagArticle } from '../services/articles';
+
 import EditArticle from '../components/EditArticle';
 import AddArticle from '../components/AddArticle';
 
 const Home = () => {
-    const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-    const [articleToDelete, setArticleToDelete] = useState(null);
-    const [user, setUser] = useState({});
+    const [anchorEl, setAnchorEl] = React.useState(null);
     const [articles, setArticles] = useState([]);
-    const [editingArticle, setEditingArticle] = useState(null);
+    const [user, setUser] = useState({});
     const [addingArticle, setAddingArticle] = useState(null);
+    const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+    const [editingArticle, setEditingArticle] = useState(null);
+    const [approveArticle, setApproveArticle] = useState(null);
+    const [reviewArticle, setReviewArticle] = useState(null);
+    const [articleToDelete, setArticleToDelete] = useState(null);
 
     useEffect(() => {
         const validateToken = async () => {
@@ -65,13 +81,21 @@ const Home = () => {
         loadArticles();
     }, []);
 
+    const handleMenuClick = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+    };
+
     const loadArticles = async () => {
         const fetchedArticles = await fetchArticles();
         setArticles(fetchedArticles);
     };
 
-    const handleButtonClick = async () => {
-        return await collectArticles(handleTokenExpiration, handleButtonClick);
+    const handleCollectAsync = async () => {
+        return await collectArticles(handleTokenExpiration, handleCollectAsync);
     };
 
     const addArticle = async (newArticle) => {
@@ -81,7 +105,7 @@ const Home = () => {
                 newArticle,
                 {
                     headers: {
-                        Authorization: `Bearer ${accessToken}`,
+                        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
                     },
                 }
             );
@@ -126,8 +150,6 @@ const Home = () => {
         const updatedData = await updateArticle(handleTokenExpiration, updatedArticle);
         if (updatedData) {
             setEditingArticle(null);
-
-            // Reload articles after updating the article
             loadArticles();
         }
     };
@@ -140,8 +162,22 @@ const Home = () => {
         const addedData = await addArticle(addedArticle);
         if (addedData) {
             setAddingArticle(null);
+            loadArticles();
+        }
+    };
 
-            // Reload articles after adding the article
+    const handleLgtmAtricle = async (articleId) => {
+        const updatedData = await lgtmArticle(handleTokenExpiration, articleId);
+        if (updatedData) {
+            setApproveArticle(null);
+            loadArticles();
+        }
+    };
+    
+    const handleReviewArticle = async (articleId) => {
+        const updatedData = await flagArticle(handleTokenExpiration, articleId);
+        if (updatedData) {
+            setReviewArticle(null);
             loadArticles();
         }
     };
@@ -223,7 +259,7 @@ const Home = () => {
                 <Grid container>
                     {/* Left side: Welcome and Fetch button */}
                     <Grid item xs={12} sm={4} md={4}>
-                        <StickyPanel handleButtonClick={handleButtonClick} onAddArticle={() => setAddingArticle(true)} />
+                        <StickyPanel handleButtonClick={handleCollectAsync} onAddArticle={() => setAddingArticle(true)} />
                     </Grid>
 
                     {/* Right side: Card content */}
@@ -238,7 +274,23 @@ const Home = () => {
                                                     <CardContent>
                                                         <Typography gutterBottom variant="h5" component="div" align='left'>
                                                             {article.title}
-                                                        </Typography>
+                                                        </Typography>                                                        
+                                                        { 
+                                                            article.visibility === 'public' ? 
+                                                                <Button color="secondary"
+                                                                    sx={{ width: '100%' }} 
+                                                                >
+                                                                    <PublicIcon sx={{ "marginRight": 1 }} />
+                                                                        已公开
+                                                                </Button> 
+                                                                :
+                                                                <Button color="warning"
+                                                                    sx={{ width: '100%' }}
+                                                                >
+                                                                    <LockIcon sx={{ "marginRight": 1 }} />
+                                                                        审核中
+                                                                </Button>
+                                                        }
                                                         <Typography variant="body2" color="text.secondary" align='left'>
                                                             {article.content}
                                                         </Typography>
@@ -254,14 +306,49 @@ const Home = () => {
                                                         sx={{ objectFit: 'fill', minWidth: '10' }}
                                                     />
                                                 </Grid>
-                                                {/* Add the "Delete" button */}
+
                                                 <Grid item xs={12} sm={12}>
                                                     <Button
-                                                        sx={{ width: '50%' }}
-                                                        onClick={() => handleEditArticle(article)}>修改</Button>
-                                                    <Button color="error"
-                                                        sx={{ width: '50%' }}
-                                                        onClick={() => handleDeleteButtonClick(article)}>删除</Button>
+                                                        sx={{ width: '25%' }}
+                                                        onClick={() => handleEditArticle(article)}
+                                                    >
+                                                        <EditIcon sx={{"marginRight": 1}} />
+                                                            修改
+                                                    </Button>
+                                                    <Button 
+                                                        color="success"
+                                                        sx={{ width: '25%' }}
+                                                        onClick={() => handleLgtmAtricle(article)}
+                                                    >
+                                                        <ThumbUpIcon sx={{"marginRight": 1}} />
+                                                            批准
+                                                    </Button>
+                                                    <Button 
+                                                        color="warning"
+                                                        sx={{ width: '25%' }}
+                                                        onClick={() => handleLgtmAtricle(article)}
+                                                    >
+                                                        <ThumbDownIcon sx={{"marginRight": 1}} />
+                                                            审核
+                                                    </Button>
+                                                    <Button 
+                                                         sx={{ width: '25%' }}
+                                                        onClick={handleMenuClick}>
+                                                        <MoreVertIcon />
+                                                    </Button>
+                                                        <Menu
+                                                            anchorEl={anchorEl}
+                                                            open={Boolean(anchorEl)}
+                                                            onClose={handleMenuClose}
+                                                        >
+                                                            <MenuItem onClick={() => {
+                                                                handleDeleteButtonClick(article);
+                                                                handleMenuClose();
+                                                            }}>
+                                                            <DeleteIcon sx={{"marginRight": 1, "color": "error.main"}} />
+                                                                删除
+                                                            </MenuItem>
+                                                        </Menu>
                                                 </Grid>
                                             </Grid>
                                         </Card>

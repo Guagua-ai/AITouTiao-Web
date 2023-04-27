@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import {
     Container,
     Typography,
@@ -24,12 +23,11 @@ import {
 import Navbar from '../components/Navbar';
 import { Edit, Delete, ArrowUpward, ArrowDownward } from '@mui/icons-material';
 import { fetchUsers, updateUser, deleteUser, promoteUser, demoteUser } from '../services/users';
-import { refreshAccessToken, handleLogout } from '../services/auth';
+import { refreshAccessToken, validateAccessToken, handleLogout } from '../services/auth';
 import { roleToChinese } from '../utils/i18n';
 
 
 const UserManagement = () => {
-    const accessToken = localStorage.getItem('accessToken');
     const [users, setUsers] = useState([]);
     const [user, setUser] = useState({});
     const [open, setOpen] = useState(false);
@@ -79,19 +77,12 @@ const UserManagement = () => {
 
     useEffect(() => {
         const validateToken = async () => {
-            if (!accessToken) {
+            if (!localStorage.getItem('accessToken')) {
                 window.location.href = '/login';
                 return;
             }
             try {
-                const response = await axios.get(
-                    'https://news.virtualdynamiclab.com/auth/validate_token',
-                    {
-                        headers: {
-                            Authorization: `Bearer ${accessToken}`,
-                        },
-                    }
-                );
+                const response = await validateAccessToken();
                 if (response.status !== 200) {
                     window.location.href = '/login';
                 }
@@ -117,7 +108,7 @@ const UserManagement = () => {
         };
         setUser(userInfo);
         loadUsers();
-    }, [accessToken]);
+    }, []);
 
     const loadUsers = async () => {
         const fetchedUsers = await fetchUsers();

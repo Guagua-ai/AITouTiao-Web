@@ -96,10 +96,47 @@ const deleteArticle = async (articleId) => {
     }
 };
 
+const lgtmArticle = async (articleId) => {
+    try {
+        const response = await axios.put(
+            TWEETS_API_URL + `/${articleId}/lgtm`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+            },
+        });
+        if (response.status === 200) {
+            return response.data;
+        }
+        return null;
+    } catch (error) {
+        console.error('Failed to approve article:', error);
+        return null;
+    }
+};
+
+const flagArticle = async (articleId) => {
+    try {
+        const response = await axios.put(
+            TWEETS_API_URL + `/${articleId}/flag`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+            },
+        });
+        if (response.status === 200) {
+            return response.data;
+        }
+        return null;
+    } catch (error) {
+        console.error('Failed to flag article:', error);
+        return null;
+    }
+};
 
 export {
     collectArticles,
     fetchArticles,
     updateArticle,
     deleteArticle,
+    lgtmArticle,
+    flagArticle,
 };
