@@ -52,12 +52,12 @@ const Login = () => {
         if (response.status === 200) {
             if (!response.data.accessToken) {
                 setLoading(false);
-                setError('Missing access token. Please try again.');
+                setError('缺少access token. 请重新尝试。');
                 return;
             }
             if (!response.data.refreshToken) {
                 setLoading(false);
-                setError('Missing refresh token. Please try again.');
+                setError('缺少refresh token. 请重新尝试。');
                 return;
             }
             localStorage.setItem('name', response.data.name);
@@ -67,7 +67,7 @@ const Login = () => {
             localStorage.setItem('refreshToken', response.data.refreshToken); // Update this line
             navigate('/home');
         } else {
-            alert('Login failed. Please try again.');
+            alert('登入失败，请重新尝试。');
         }
         setLoading(false);
     };
@@ -112,7 +112,7 @@ const Login = () => {
                         sx={styles.submit}
                         disabled={loading}
                     >
-                        {loading ? <CircularProgress size={24} /> : 'Login'}
+                        {loading ? <CircularProgress size={24} /> : '登入'}
                     </Button>
                     <Typography variant="body2" color="error">
                         {error}
