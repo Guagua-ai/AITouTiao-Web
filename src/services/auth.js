@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { LOGIN_URL } from './constants';
+import { LOGIN_URL, REFRESH_TOKEN_URL, VALIDATE_TOKEN_URL } from './constants';
 
 const handleLogin = async (email, password) => {
     try {
@@ -39,7 +39,7 @@ const handleLogin = async (email, password) => {
 const refreshAccessToken = async (refreshToken) => {
     try {
         const response = await axios.post(
-            'https://news.virtualdynamiclab.com/auth/refresh', {
+            REFRESH_TOKEN_URL, {
             refreshToken,
         });
         return {
@@ -65,7 +65,7 @@ const refreshAccessToken = async (refreshToken) => {
 
 const validateAccessToken = async () => {
     return await axios.get(
-        'https://news.virtualdynamiclab.com/auth/validate_token',
+        VALIDATE_TOKEN_URL,
         {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('accessToken')}`,

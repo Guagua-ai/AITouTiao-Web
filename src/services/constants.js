@@ -17,6 +17,9 @@ const REGISTER_URL = ENDPOINT + '/auth/register';
 const COLLECT_ASYNC = ENDPOINT + '/admin/collect_async';
 const COLLECT_SYNC = ENDPOINT + '/admin/collect';
 
+const REFRESH_TOKEN_URL = ENDPOINT + '/auth/refresh';
+const VALIDATE_TOKEN_URL = ENDPOINT + '/auth/validate_token';
+
 export {
     TWEETS_API_URL,
     TWEETS_API_PAGINATION_URL,
