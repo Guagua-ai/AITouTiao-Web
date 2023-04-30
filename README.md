@@ -26,7 +26,7 @@ npm run build
 npm run test
 ```
 
-## CopyRight
+## License
 
-CopyRight © 2022-2023 [Virtual Dynamic Labs, LLC](https://www.virtualdynamiclabs.com/)
-All Rights Reserved.
+    CopyRight © 2022-2023 [Virtual Dynamic Labs, LLC](https://www.virtualdynamiclabs.xyz/)
+    All Rights Reserved.
