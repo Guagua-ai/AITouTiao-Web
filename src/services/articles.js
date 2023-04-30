@@ -4,11 +4,13 @@ import { COLLECT_ASYNC, TWEETS_API_URL } from './constants';
 const collectArticles = async (handleTokenExpiration, handleButtonClick) => {
     try {
         const response = await axios.get(
-            COLLECT_ASYNC, {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-            },
-        });
+            COLLECT_ASYNC, 
+            {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                },
+            }
+        );
         return (response.status === 200 || response.status === 201 || response.status === 202);
     } catch (error) {
         if (error.response && error.response.status === 401) {
@@ -117,11 +119,13 @@ const updateArticle = async (handleTokenExpiration, updatedArticle) => {
 const deleteArticle = async (articleId) => {
     try {
         await axios.delete(
-            TWEETS_API_URL + `/${articleId}`, {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-            },
-        });
+            TWEETS_API_URL + `/${articleId}`, 
+            {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                },
+            }
+        );
     } catch (error) {
         console.error('Failed to fetch articles:', error);
         return [];

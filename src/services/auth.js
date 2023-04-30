@@ -1,10 +1,10 @@
 import axios from 'axios';
-import { LOGIN_URL, REFRESH_TOKEN_URL, VALIDATE_TOKEN_URL } from './constants';
+import { AUTH_API_LOGIN_URL, AUTH_API_REFRESH_URL, AUTH_API_VALIDATE_URL } from './constants';
 
 const handleLogin = async (email, password) => {
     try {
         const response = await axios.post(
-            LOGIN_URL, 
+            AUTH_API_LOGIN_URL, 
             {
                 email,
                 password,
@@ -39,9 +39,11 @@ const handleLogin = async (email, password) => {
 const refreshAccessToken = async (refreshToken) => {
     try {
         const response = await axios.post(
-            REFRESH_TOKEN_URL, {
-            refreshToken,
-        });
+            AUTH_API_REFRESH_URL, 
+            {
+                refreshToken, 
+            }
+        );
         return {
             status: response.status,
             data: {
@@ -65,7 +67,7 @@ const refreshAccessToken = async (refreshToken) => {
 
 const validateAccessToken = async () => {
     return await axios.get(
-        VALIDATE_TOKEN_URL,
+        AUTH_API_VALIDATE_URL,
         {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('accessToken')}`,

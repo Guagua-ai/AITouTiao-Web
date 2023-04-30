@@ -12,11 +12,10 @@ const fetchUsers = async () => {
                 },
             },
         );
-
         return response.data.users;
     } catch (error) {
         console.error('Failed to fetch users:', error);
-        return []; // Return an empty array when there is an error
+        return [];
     }
 };
 
