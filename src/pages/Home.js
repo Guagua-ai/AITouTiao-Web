@@ -347,7 +347,7 @@ const Home = () => {
                     position: 'sticky',
                     bottom: 0,
                 }}
-                severity="error">Operation failed!</Alert>}
+                severity="error">操作失败!</Alert>}
         </>
     );
 };
