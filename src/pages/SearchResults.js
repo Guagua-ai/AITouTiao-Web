@@ -66,75 +66,73 @@ const SearchResults = () => {
         }
     };  
 
-  return (
-    <>
-        {/* Add the navigation bar */}
-        <Navbar user={user} handleLogout={handleLogout} />
+    return (
+        <>
+            {/* Add the navigation bar */}
+            <Navbar user={user} handleLogout={handleLogout} />
 
-        <Container maxWidth="lg">
-            {/* Add the search results */}
-            <Box>
-                <Box sx={{ marginTop: 4 }}>
-                    <Typography
-                        variant="h4"
-                        component="div"
-                        sx={{
-                            fontSize: '2.5rem',
-                            fontWeight: 'bold',
-                            marginBottom: '1rem',
-                            color: '#FFFFFF', // Change the color to your preferred color
-                        }}
-                    >
-                        搜索结果
-                    </Typography>
-            </Box>
-            {results.map((searchResult, index) => (
-                <Card key={index} sx={{ marginBottom: 2 }}>
-                <Box sx={{ display: 'flex' }}>
-                    <Box sx={{ flexGrow: 1 }}>
-                        <CardContent>
-                            {
-                                searchResult.visibility === 'public' ?
-                                    <Button color="secondary"
-                                        sx={{ width: '100%' }}
-                                    >
-                                        <PublicIcon sx={{ "marginRight": 1 }} />
-                                            已公开
-                                    </Button>
-                                    :
-                                    <Button color="warning"
-                                        sx={{ width: '100%' }}
-                                    >
-                                        <LockIcon sx={{ "marginRight": 1 }} />
-                                            审核中
-                                    </Button>
-                            }
-                            <Typography variant="h6" component="h2">
-                                {searchResult.author}
-                            </Typography>
-                            <Typography variant="h6" component="h2">
-                                {searchResult.title}
-                            </Typography>
-                            <Typography variant="body1" component="p">
-                                {searchResult.description}
-                            </Typography>
-                        </CardContent>
-                    </Box>
-                    <CardMedia
-                        component="img"
-                        height="200"
-                        width="200"
-                        image={searchResult.urlToImage}
-                        alt={searchResult.title}
-                        sx={{ objectFit: 'cover', height: '200px', width: '200px' }}
-                    />
+            <Container maxWidth="lg">
+                {/* Add the search results */}
+                <Box>
+                    <Box sx={{ marginTop: 4 }}>
+                        <Typography
+                            variant="h4"
+                            component="div"
+                            sx={{
+                                fontSize: '2.5rem',
+                                fontWeight: 'bold',
+                                marginBottom: '1rem',
+                                color: '#FFFFFF', // Change the color to your preferred color
+                            }}
+                        >
+                            搜索结果
+                        </Typography>
                 </Box>
-            </Card>
-            ))}
-            </Box>
-        </Container>
-    </>
-  );
+                {results.map((searchResult, index) => (
+                    <Card key={index} sx={{ marginBottom: 2, padding: 1 }}>
+                        <Box sx={{ display: 'flex' }}>
+                            <Box sx={{ flexGrow: 1 }}>
+                                <CardContent>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 1 }}>
+                                        <Typography variant="h6" component="h2" sx={{ fontWeight: 'bold' }}>
+                                            {searchResult.author}
+                                        </Typography>
+                                        {
+                                            searchResult.visibility === 'public' ?
+                                                <Button color="secondary">
+                                                    <PublicIcon sx={{ "marginRight": 1 }} />
+                                                    已公开
+                                                </Button>
+                                                :
+                                                <Button color="warning">
+                                                    <LockIcon sx={{ "marginRight": 1 }} />
+                                                    审核中
+                                                </Button>
+                                        }
+                                    </Box>
+                                    <Typography variant="h4" component="h2" sx={{ fontWeight: 'bold', marginBottom: 1 }}>
+                                        {searchResult.title}
+                                    </Typography>
+                                    <Typography variant="body1" component="p" sx={{ marginBottom: 1 }}>
+                                        {searchResult.content}
+                                    </Typography>
+                                </CardContent>
+                            </Box>
+                            <CardMedia
+                                component="img"
+                                height="200"
+                                width="200"
+                                image={searchResult.urlToImage}
+                                alt={searchResult.title}
+                                sx={{ objectFit: 'cover', height: '200px', width: '200px', borderRadius: '4px', marginLeft: 2 }}
+                            />
+                        </Box>
+                    </Card>
+                ))}
+                </Box>
+            </Container>
+        </>
+    );
 };
 
 export default SearchResults;

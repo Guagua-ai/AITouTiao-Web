@@ -163,8 +163,8 @@ const Home = () => {
         }
     };
 
-    const handleDeleteButtonClick = (articleId) => {
-        setArticleToDelete(articleId);
+    const handleDeleteButtonClick = (article) => {
+        setArticleToDelete(article.id);
         setConfirmDialogOpen(true);
     };
 
