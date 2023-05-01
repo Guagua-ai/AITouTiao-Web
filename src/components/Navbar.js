@@ -22,6 +22,7 @@ import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import SettingsIcon from '@mui/icons-material/Settings';
 import MenuIcon from '@mui/icons-material/Menu';
 import icLauncher from '../assets/ic_launcher.png';
+import { searchArticles } from '../services/articles';
 
 const menuItemStyle = {
     display: 'flex',
@@ -86,6 +87,23 @@ const Navbar = ({ user, handleLogout }) => {
         handleClose();
     };
 
+    const handleSearch = async (searchQuery) => {
+      try {
+        const response = await searchArticles(searchQuery);
+        
+        // Navigate to the search results page and pass the results as a prop
+        navigate('/search-results', { state: { results: response.data.results } });
+      } catch (error) {
+        console.error('Error searching for posts:', error);
+      }
+    };
+
+    const handleSearchSubmit = (event) => {
+      event.preventDefault();
+      const searchQuery = event.target.searchQuery.value;
+      handleSearch(searchQuery);
+    };
+
     return (
         <AppBar position="sticky" top="64px">
             <Toolbar>
@@ -120,15 +138,18 @@ const Navbar = ({ user, handleLogout }) => {
 
 
                 {/* Search bar */}
-                <Search>
-                    <SearchIconWrapper>
+                <form onSubmit={handleSearchSubmit}>
+                    <Search>
+                        <SearchIconWrapper>
                         <SearchIcon />
-                    </SearchIconWrapper>
-                    <StyledInputBase
-                        placeholder="Search…"
-                        inputProps={{ 'aria-label': 'search' }}
-                    />
-                </Search>
+                        </SearchIconWrapper>
+                        <StyledInputBase
+                            name="searchQuery"
+                            placeholder="搜索…"
+                            inputProps={{ 'aria-label': 'search' }}
+                        />
+                    </Search>
+                </form>
 
                 <Box sx={{ flexGrow: 1 }}></Box>
                 <Hidden smDown>

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { COLLECT_ASYNC, TWEETS_API_URL } from './constants';
+import { COLLECT_ASYNC, TWEETS_API_URL, SEARCH_POST_API_URL } from './constants';
 
 const collectArticles = async (handleTokenExpiration, handleButtonClick) => {
     try {
@@ -194,6 +194,24 @@ const flagArticle = async (handleTokenExpiration, articleId) => {
     }
 };
 
+const searchArticles = async (searchTerm) => {
+    try {
+        const response = await axios.get(
+            SEARCH_API_URL + `?q=${searchTerm}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+                },
+            }
+        );
+        const data = response.data;
+        return data.articles;
+    } catch (error) {
+        console.error('Failed to fetch articles:', error);
+        return [];
+    }
+};
+
 export {
     collectArticles,
     addArticle,
@@ -202,4 +220,5 @@ export {
     deleteArticle,
     lgtmArticle,
     flagArticle,
+    searchArticles,
 };

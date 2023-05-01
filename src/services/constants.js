@@ -21,6 +21,9 @@ const USERS_API_PAGINATION_URL = ENDPOINT + '/users/pagination';
 const COLLECT_ASYNC = ENDPOINT + '/admin/collect_async';
 const COLLECT_SYNC = ENDPOINT + '/admin/collect';
 
+// Search APIS
+const SEARCH_POST_API_URL = ENDPOINT + '/admin/search/posts';
+
 export {
     AUTH_API_REFRESH_URL,
     AUTH_API_VALIDATE_URL,
@@ -31,5 +34,6 @@ export {
     USERS_API_URL,
     USERS_API_PAGINATION_URL,
     COLLECT_ASYNC,
-    COLLECT_SYNC,   
+    COLLECT_SYNC,
+    SEARCH_POST_API_URL,
 };
