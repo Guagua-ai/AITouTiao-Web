@@ -52,18 +52,20 @@ const SearchIconWrapper = styled('div')(({ theme }) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    right: 0,
 }));
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
     color: 'inherit',
     '& .MuiInputBase-input': {
-        padding: theme.spacing(1, 1, 1, 0),
-        paddingLeft: `calc(1em + ${theme.spacing(4)}px)`,
+        padding: theme.spacing(1, 1, 1, 2),
+        paddingRight: `calc(1em + ${theme.spacing(4)}px)`, 
         transition: theme.transitions.create('width'),
         width: '100%',
         [theme.breakpoints.up('sm')]: {
             width: '30ch', // Increase width
             '&:focus': {
+                paddingLeft: theme.spacing(2),
                 width: '40ch', // Increase focused width
             },
         },
@@ -71,8 +73,9 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 const Navbar = ({ user, handleLogout }) => {
-    const [anchorEl, setAnchorEl] = useState(null);
     const navigate = useNavigate();
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
 
     const handleClick = (event) => {
         setAnchorEl(event.currentTarget);
@@ -88,19 +91,22 @@ const Navbar = ({ user, handleLogout }) => {
     };
 
     const handleSearch = async (searchQuery) => {
-      try {
-        const response = await searchArticles(searchQuery);
-        
-        // Navigate to the search results page and pass the results as a prop
-        navigate('/search-results', { state: { results: response.data.results } });
-      } catch (error) {
-        console.error('Error searching for posts:', error);
-      }
+        try {
+            const articles = await searchArticles(searchQuery);
+            
+            // Navigate to the search results page and pass the articles as a prop
+            navigate('/search-results', { state: { results: articles } });
+        } catch (error) {
+            console.error('Error searching for posts:', error);
+        }
+    };    
+      
+    const handleSearchChange = (e) => {
+        setSearchQuery(e.target.value);
     };
 
     const handleSearchSubmit = (event) => {
       event.preventDefault();
-      const searchQuery = event.target.searchQuery.value;
       handleSearch(searchQuery);
     };
 
@@ -144,9 +150,16 @@ const Navbar = ({ user, handleLogout }) => {
                         <SearchIcon />
                         </SearchIconWrapper>
                         <StyledInputBase
-                            name="searchQuery"
-                            placeholder="搜索…"
-                            inputProps={{ 'aria-label': 'search' }}
+                        name="searchQuery"
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        placeholder="搜索…"
+                        inputProps={{ 'aria-label': 'search' }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                            handleSearchSubmit(e);
+                            }
+                        }}
                         />
                     </Search>
                 </form>

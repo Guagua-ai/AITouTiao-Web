@@ -205,7 +205,7 @@ const searchArticles = async (searchTerm) => {
             }
         );
         const data = response.data;
-        return data.articles;
+        return data;
     } catch (error) {
         console.error('Failed to fetch articles:', error);
         return [];
