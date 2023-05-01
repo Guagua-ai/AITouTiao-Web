@@ -197,7 +197,7 @@ const flagArticle = async (handleTokenExpiration, articleId) => {
 const searchArticles = async (searchTerm) => {
     try {
         const response = await axios.get(
-            SEARCH_API_URL + `?q=${searchTerm}`,
+            SEARCH_POST_API_URL + `?q=${searchTerm}`,
             {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
