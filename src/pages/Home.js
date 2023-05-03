@@ -164,7 +164,7 @@ const Home = () => {
     };
 
     const handleDeleteButtonClick = (article) => {
-        setArticleToDelete(article.id);
+        setArticleToDelete(article);
         setConfirmDialogOpen(true);
     };
 
@@ -226,7 +226,7 @@ const Home = () => {
                     <Button onClick={() => setConfirmDialogOpen(false)}>
                         取消
                     </Button>
-                    <Button color="error" onClick={handleConfirmDelete}>
+                    <Button color="error" onClick={() => handleConfirmDelete()}>
                         删除
                     </Button>
                 </DialogActions>
