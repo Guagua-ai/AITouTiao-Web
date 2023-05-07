@@ -16,6 +16,7 @@ const TWEETS_API_PAGINATION_URL = ENDPOINT + '/admin/tweets/pagination';
 // Users APIs
 const USERS_API_URL = ENDPOINT + '/admin/users';
 const USERS_API_PAGINATION_URL = ENDPOINT + '/users/pagination';
+const USER_API_URL = ENDPOINT + '/admin/user';
 
 // Collect APIs
 const COLLECT_ASYNC = ENDPOINT + '/admin/collect_async';
@@ -33,6 +34,7 @@ export {
     TWEETS_API_PAGINATION_URL,
     USERS_API_URL,
     USERS_API_PAGINATION_URL,
+    USER_API_URL,
     COLLECT_ASYNC,
     COLLECT_SYNC,
     SEARCH_POST_API_URL,

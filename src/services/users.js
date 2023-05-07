@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { roleToEnglish } from '../utils/i18n';
-import { USERS_API_URL } from './constants';
+import { USERS_API_URL, USER_API_URL } from './constants';
 
 const fetchUsers = async () => {
     try {
@@ -29,7 +29,7 @@ const updateUser = async (user) => {
     };
     try {
         await axios.put(
-            USERS_API_URL +  `/${user.id}`,
+            USER_API_URL + `/${user.id}`,
             updatedUser,
             {
                 headers: {
@@ -44,7 +44,7 @@ const updateUser = async (user) => {
 
 const deleteUser = async (userId) => {
     await axios.delete(
-        USERS_API_URL + `/${userId}`, {
+        USER_API_URL + `/${userId}`, {
         headers: {
             Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
         },
@@ -76,7 +76,7 @@ const demoteUser = async (user) => {
     };
     try {
         await axios.put(
-            USERS_API_URL + `/${user.id}`,
+            USER_API_URL + `/${user.id}`,
             updatedUser,
             {
                 headers: {
