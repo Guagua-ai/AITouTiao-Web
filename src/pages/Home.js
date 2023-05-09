@@ -14,11 +14,9 @@ import {
     DialogActions,
     DialogContentText,
     Menu,
-    MenuItem,
 } from '@mui/material';
 
 import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -26,7 +24,7 @@ import PublicIcon from '@mui/icons-material/Public';
 import LockIcon from '@mui/icons-material/Lock';
 import Alert from '@mui/material/Alert';
 
-
+import ArticleMenuItem from '../components/ArticleMenuItem';
 import Navbar from '../components/Navbar';
 import StickyPanel from '../components/StickyPanel';
 import { refreshAccessToken, validateAccessToken, handleLogout } from '../services/auth';
@@ -82,9 +80,9 @@ const Home = () => {
         loadArticles();
     }, []);
 
-    const handleMenuClick = (event) => {
-        setAnchorEl(event.currentTarget);
-    };
+    const handleMenuClick = (event, articleId) => {
+        setAnchorEl({ anchor: event.currentTarget, articleId });
+    };    
 
     const handleMenuClose = () => {
         setAnchorEl(null);
@@ -166,6 +164,7 @@ const Home = () => {
     const handleDeleteButtonClick = (article) => {
         setArticleToDelete(article);
         setConfirmDialogOpen(true);
+        handleMenuClose();
     };
 
     const handleConfirmDelete = async () => {
@@ -215,6 +214,8 @@ const Home = () => {
             <Dialog
                 open={confirmDialogOpen}
                 onClose={() => setConfirmDialogOpen(false)}
+                maxWidth="sm"
+                fullWidth
             >
                 <DialogTitle>删除文章</DialogTitle>
                 <DialogContent>
@@ -285,6 +286,7 @@ const Home = () => {
                                                         image={article.urlToImage}
                                                         alt={article.title}
                                                         sx={{ objectFit: 'fill', minWidth: '10' }}
+                                                        loading="lazy"
                                                     />
                                                 </Grid>
 
@@ -312,24 +314,23 @@ const Home = () => {
                                                         <ThumbDownIcon sx={{"marginRight": 1}} />
                                                             审核
                                                     </Button>
-                                                    <Button 
-                                                         sx={{ width: '25%' }}
-                                                        onClick={handleMenuClick}>
+                                                    <Button
+                                                        sx={{ width: '25%' }}
+                                                        onClick={(event) => handleMenuClick(event, article.id)}
+                                                    >
                                                         <MoreVertIcon />
                                                     </Button>
-                                                        <Menu
-                                                            anchorEl={anchorEl}
-                                                            open={Boolean(anchorEl)}
-                                                            onClose={handleMenuClose}
-                                                        >
-                                                            <MenuItem onClick={() => {
-                                                                handleDeleteButtonClick(article);
-                                                                handleMenuClose();
-                                                            }}>
-                                                            <DeleteIcon sx={{"marginRight": 1, "color": "error.main"}} />
-                                                                删除
-                                                            </MenuItem>
-                                                        </Menu>
+                                                    <Menu
+                                                        anchorEl={anchorEl && anchorEl.anchor}
+                                                        open={Boolean(anchorEl) && anchorEl.articleId === article.id}
+                                                        onClose={handleMenuClose}
+                                                    >
+                                                        <ArticleMenuItem
+                                                            handleClose={handleMenuClose}
+                                                            handleDelete={handleDeleteButtonClick}
+                                                            article={article}
+                                                        />
+                                                    </Menu>
                                                 </Grid>
                                             </Grid>
                                         </Card>
