@@ -287,25 +287,27 @@ const Home = () => {
                                                 <Grid container>
                                                     <Grid item xs={12} sm={10}>
                                                         <CardContent>
-                                                            <Typography gutterBottom variant="h5" component="div" align='left'>
-                                                                {article.title}
-                                                            </Typography>
+                                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                                                             {
                                                                 article.visibility === 'public' ?
-                                                                    <Button color="secondary"
-                                                                        sx={{ width: '100%' }}
-                                                                    >
-                                                                        <PublicIcon sx={{ "marginRight": 1 }} />
+                                                                        <Button color="secondary" sx={{ minWidth: 'auto' }}>
+                                                                            <PublicIcon sx={{ marginRight: 1 }} />
                                                                         已公开
                                                                     </Button>
                                                                     :
-                                                                    <Button color="warning"
-                                                                        sx={{ width: '100%' }}
-                                                                    >
-                                                                        <LockIcon sx={{ "marginRight": 1 }} />
+                                                                        <Button color="warning" sx={{ minWidth: 'auto' }}>
+                                                                            <LockIcon sx={{ marginRight: 1 }} />
                                                                         审核中
                                                                     </Button>
                                                             }
+
+                                                                <Typography align='right' sx={{ marginRight: '1rem' }}>
+                                                                    文章ID: {article.id}
+                                                                </Typography>
+                                                            </div>
+                                                            <Typography gutterBottom variant="h5" component="div" align='left'>
+                                                                {article.title}
+                                                            </Typography>
                                                             <Typography variant="body2" color="text.secondary" align='left'>
                                                                 {article.content}
                                                             </Typography>

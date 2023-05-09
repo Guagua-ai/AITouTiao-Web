@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, CircularProgress } from '@mui/material';
+import { REMOTE_ENDPOINT } from '../services/constants';
 
 
 const EditArticle = ({ article, onUpdate, onClose }) => {
@@ -14,6 +15,29 @@ const EditArticle = ({ article, onUpdate, onClose }) => {
     const handleSave = async () => {
         setLoading(true);
         await onUpdate(updatedArticle);
+        setLoading(false);
+    };
+
+    const handleRewrite = async () => {
+        setLoading(true);
+        const response = await fetch(REMOTE_ENDPOINT + '/admin/rewrite', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('accessToken'),
+            },
+            body: JSON.stringify({
+                tweet_id: updatedArticle.id
+            })
+        });
+        if (response.ok) {
+            const data = await response.json();
+            setUpdatedArticle(prevArticle => ({
+                ...prevArticle,
+                title: data.title,
+                content: data.content
+            }));
+        }
         setLoading(false);
     };
 
@@ -40,17 +64,25 @@ const EditArticle = ({ article, onUpdate, onClose }) => {
                     onChange={handleChange}
                     fullWidth
                 />
-                <TextField
-                    margin="dense"
-                    name="content"
-                    label="内容"
-                    type="text"
-                    value={updatedArticle.content}
-                    onChange={handleChange}
-                    fullWidth
-                    multiline
-                    rows={10}
-                />
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'flex-end' }}>
+                    <TextField
+                        margin="dense"
+                        name="content"
+                        label="内容"
+                        type="text"
+                        value={updatedArticle.content}
+                        onChange={handleChange}
+                        fullWidth
+                        multiline
+                        rows={10}
+                    />
+                    <div style={{ position: 'absolute', left: 0, bottom: 0 }}>
+                        <Button onClick={handleRewrite} disabled={loading}>
+                            重写
+                        </Button>
+                        {loading && <CircularProgress size={24} />}
+                    </div>
+                </div>
                 <TextField
                     margin='dense'
                     name='displayname'

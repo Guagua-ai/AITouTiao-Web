@@ -26,6 +26,8 @@ const COLLECT_SYNC = ENDPOINT + '/admin/collect';
 const SEARCH_POST_API_URL = ENDPOINT + '/admin/search/posts';
 
 export {
+    LOCAL_ENDPOINT,
+    REMOTE_ENDPOINT,
     AUTH_API_REFRESH_URL,
     AUTH_API_VALIDATE_URL,
     AUTH_API_LOGIN_URL,
