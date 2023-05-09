@@ -60,10 +60,10 @@ const addArticle = async (handleTokenExpiration, newArticle) => {
     }
 };
 
-const fetchArticles = async (since_id = 0, per_page = 10) => {
+const fetchArticles = async (page = 1, per_page = 10) => {
     try {
         const response = await axios.get(
-            TWEETS_API_URL,
+            `${TWEETS_API_URL}?page=${page}&per_page=${per_page}`,
             {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
@@ -71,10 +71,10 @@ const fetchArticles = async (since_id = 0, per_page = 10) => {
             }
         );
         const data = response.data;
-        return data.articles;
+        return { articles: data.articles || [], totalResults: data.totalResults || 0 };
     } catch (error) {
         console.error('Failed to fetch articles:', error);
-        return [];
+        return { articles: [], totalResults: 0 };
     }
 };
 

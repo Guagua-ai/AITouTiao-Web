@@ -16,6 +16,8 @@ import {
     Menu,
 } from '@mui/material';
 
+import InfiniteScroll from 'react-infinite-scroll-component';
+
 import EditIcon from '@mui/icons-material/Edit';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
@@ -24,12 +26,12 @@ import PublicIcon from '@mui/icons-material/Public';
 import LockIcon from '@mui/icons-material/Lock';
 import Alert from '@mui/material/Alert';
 
-import ArticleMenuItem from '../components/ArticleMenuItem';
-import Navbar from '../components/Navbar';
-import StickyPanel from '../components/StickyPanel';
 import { refreshAccessToken, validateAccessToken, handleLogout } from '../services/auth';
 import { collectArticles, addArticle, fetchArticles, updateArticle, deleteArticle, lgtmArticle, flagArticle } from '../services/articles';
 
+import Navbar from '../components/Navbar';
+import ArticleMenuItem from '../components/ArticleMenuItem';
+import StickyPanel from '../components/StickyPanel';
 import EditArticle from '../components/EditArticle';
 import AddArticle from '../components/AddArticle';
 
@@ -44,6 +46,9 @@ const Home = () => {
     const [reviewArticle, setReviewArticle] = useState(null);
     const [articleToDelete, setArticleToDelete] = useState(null);
     const [showAlert, setShowAlert] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalResults, setTotalResults] = useState(0);
+    const hasMore = articles.length < totalResults;
 
     useEffect(() => {
         const validateToken = async () => {
@@ -80,6 +85,10 @@ const Home = () => {
         loadArticles();
     }, []);
 
+    useEffect(() => {
+        loadArticles();
+    }, [currentPage]);
+
     const handleMenuClick = (event, articleId) => {
         setAnchorEl({ anchor: event.currentTarget, articleId });
     };    
@@ -88,10 +97,24 @@ const Home = () => {
         setAnchorEl(null);
     };
 
+    const refreshCurrentPage = async () => {
+        const newArticles = [];
+        for (let i = 1; i <= currentPage; i++) {
+            const fetchedArticles = await fetchArticles(i);
+            newArticles.push(...fetchedArticles.articles);
+        }
+        setArticles(newArticles);
+    };    
+
     const loadArticles = async () => {
-        const fetchedArticles = await fetchArticles();
-        setArticles(fetchedArticles);
+        const fetchedArticles = await fetchArticles(currentPage);
+        setArticles((prevArticles) => [...prevArticles, ...fetchedArticles.articles]);
+        setTotalResults(fetchedArticles.totalResults);
     };
+
+    const handlePageChange = () => {
+        setCurrentPage((prevPage) => prevPage + 1);
+    };    
 
     const handleCollectAsync = async () => {
         return await collectArticles(handleTokenExpiration, handleCollectAsync);
@@ -119,9 +142,9 @@ const Home = () => {
         const updatedData = await updateArticle(handleTokenExpiration, article);
         if (updatedData) {
             setEditingArticle(null);
-            loadArticles();
+            refreshCurrentPage();
         }
-    };
+    };    
 
     const handleEditArticle = (article) => {
         setEditingArticle(article);
@@ -131,7 +154,7 @@ const Home = () => {
         const addedData = await addArticle(article);
         if (addedData) {
             setAddingArticle(null);
-            loadArticles();
+            refreshCurrentPage();
         }
     };
 
@@ -139,7 +162,7 @@ const Home = () => {
         const updatedData = await lgtmArticle(handleTokenExpiration, article.id);
         if (updatedData) {
             setApproveArticle(null);
-            loadArticles();
+            refreshCurrentPage();
         } else {
             setShowAlert(true);
             setTimeout(() => {
@@ -152,7 +175,7 @@ const Home = () => {
         const updatedData = await flagArticle(handleTokenExpiration, article.id);
         if (updatedData) {
             setReviewArticle(null);
-            loadArticles();
+            refreshCurrentPage();
         } else {
             setShowAlert(true);
             setTimeout(() => {
@@ -171,7 +194,7 @@ const Home = () => {
         if (articleToDelete) {
             try {
                 await deleteArticle(articleToDelete.id);
-                loadArticles();
+                refreshCurrentPage();
             } catch (error) {
                 if (error.response && error.response.status === 401) {
                     // Access token expired, try to refresh it
@@ -185,7 +208,6 @@ const Home = () => {
                     console.error('Failed to delete article:', error);
                 }
             }
-
             setConfirmDialogOpen(false);
             setArticleToDelete(null);
         }
@@ -247,96 +269,108 @@ const Home = () => {
                     {/* Right side: Card content */}
                     <Grid item xs={12} sm={8} md={8}>
                         <Box sx={{ flexGrow: 1 }}>
-                            <Grid container spacing={2}>
-                                {articles.map((article) => (
-                                    <Grid item xs={12} key={article.id}>
-                                        <Card sx={{ display: 'flex', alignItems: 'center' }}>
-                                            <Grid container>
-                                                <Grid item xs={12} sm={10}>
-                                                    <CardContent>
-                                                        <Typography gutterBottom variant="h5" component="div" align='left'>
-                                                            {article.title}
-                                                        </Typography>                                                        
-                                                        { 
-                                                            article.visibility === 'public' ? 
-                                                                <Button color="secondary"
-                                                                    sx={{ width: '100%' }} 
-                                                                >
-                                                                    <PublicIcon sx={{ "marginRight": 1 }} />
+                            <InfiniteScroll
+                                dataLength={articles.length}
+                                next={handlePageChange}
+                                hasMore={hasMore}
+                                loader={<h4>Loading...</h4>}
+                                endMessage={
+                                    <p style={{ textAlign: 'center' }}>
+                                        <b>You have seen it all!</b>
+                                    </p>
+                                }
+                            >
+                                <Grid container spacing={2}>
+                                    {articles.map((article) => (
+                                        <Grid item xs={12} key={article.id}>
+                                            <Card sx={{ display: 'flex', alignItems: 'center' }}>
+                                                <Grid container>
+                                                    <Grid item xs={12} sm={10}>
+                                                        <CardContent>
+                                                            <Typography gutterBottom variant="h5" component="div" align='left'>
+                                                                {article.title}
+                                                            </Typography>
+                                                            {
+                                                                article.visibility === 'public' ?
+                                                                    <Button color="secondary"
+                                                                        sx={{ width: '100%' }}
+                                                                    >
+                                                                        <PublicIcon sx={{ "marginRight": 1 }} />
                                                                         已公开
-                                                                </Button> 
-                                                                :
-                                                                <Button color="warning"
-                                                                    sx={{ width: '100%' }}
-                                                                >
-                                                                    <LockIcon sx={{ "marginRight": 1 }} />
+                                                                    </Button>
+                                                                    :
+                                                                    <Button color="warning"
+                                                                        sx={{ width: '100%' }}
+                                                                    >
+                                                                        <LockIcon sx={{ "marginRight": 1 }} />
                                                                         审核中
-                                                                </Button>
-                                                        }
-                                                        <Typography variant="body2" color="text.secondary" align='left'>
-                                                            {article.content}
-                                                        </Typography>
-                                                    </CardContent>
-                                                </Grid>
-                                                <Grid item xs={12} sm={2}>
-                                                    <CardMedia
-                                                        component="img"
-                                                        height="120"
-                                                        width="20"
-                                                        image={article.urlToImage}
-                                                        alt={article.title}
-                                                        sx={{ objectFit: 'fill', minWidth: '10' }}
-                                                        loading="lazy"
-                                                    />
-                                                </Grid>
-
-                                                <Grid item xs={12} sm={12}>
-                                                    <Button
-                                                        sx={{ width: '25%' }}
-                                                        onClick={() => handleEditArticle(article)}
-                                                    >
-                                                        <EditIcon sx={{"marginRight": 1}} />
-                                                            修改
-                                                    </Button>
-                                                    <Button 
-                                                        color="success"
-                                                        sx={{ width: '25%' }}
-                                                        onClick={() => handleLgtmAtricle(article)}
-                                                    >
-                                                        <ThumbUpIcon sx={{"marginRight": 1}} />
-                                                            批准
-                                                    </Button>
-                                                    <Button 
-                                                        color="warning"
-                                                        sx={{ width: '25%' }}
-                                                        onClick={() => handleReviewArticle(article)}
-                                                    >
-                                                        <ThumbDownIcon sx={{"marginRight": 1}} />
-                                                            审核
-                                                    </Button>
-                                                    <Button
-                                                        sx={{ width: '25%' }}
-                                                        onClick={(event) => handleMenuClick(event, article.id)}
-                                                    >
-                                                        <MoreVertIcon />
-                                                    </Button>
-                                                    <Menu
-                                                        anchorEl={anchorEl && anchorEl.anchor}
-                                                        open={Boolean(anchorEl) && anchorEl.articleId === article.id}
-                                                        onClose={handleMenuClose}
-                                                    >
-                                                        <ArticleMenuItem
-                                                            handleClose={handleMenuClose}
-                                                            handleDelete={handleDeleteButtonClick}
-                                                            article={article}
+                                                                    </Button>
+                                                            }
+                                                            <Typography variant="body2" color="text.secondary" align='left'>
+                                                                {article.content}
+                                                            </Typography>
+                                                        </CardContent>
+                                                    </Grid>
+                                                    <Grid item xs={12} sm={2}>
+                                                        <CardMedia
+                                                            component="img"
+                                                            height="120"
+                                                            width="20"
+                                                            image={article.urlToImage}
+                                                            alt={article.title}
+                                                            sx={{ objectFit: 'fill', minWidth: '10' }}
+                                                            loading="lazy"
                                                         />
-                                                    </Menu>
+                                                    </Grid>
+
+                                                    <Grid item xs={12} sm={12}>
+                                                        <Button
+                                                            sx={{ width: '25%' }}
+                                                            onClick={() => handleEditArticle(article)}
+                                                        >
+                                                            <EditIcon sx={{ "marginRight": 1 }} />
+                                                            修改
+                                                        </Button>
+                                                        <Button
+                                                            color="success"
+                                                            sx={{ width: '25%' }}
+                                                            onClick={() => handleLgtmAtricle(article)}
+                                                        >
+                                                            <ThumbUpIcon sx={{ "marginRight": 1 }} />
+                                                            批准
+                                                        </Button>
+                                                        <Button
+                                                            color="warning"
+                                                            sx={{ width: '25%' }}
+                                                            onClick={() => handleReviewArticle(article)}
+                                                        >
+                                                            <ThumbDownIcon sx={{ "marginRight": 1 }} />
+                                                            审核
+                                                        </Button>
+                                                        <Button
+                                                            sx={{ width: '25%' }}
+                                                            onClick={(event) => handleMenuClick(event, article.id)}
+                                                        >
+                                                            <MoreVertIcon />
+                                                        </Button>
+                                                        <Menu
+                                                            anchorEl={anchorEl && anchorEl.anchor}
+                                                            open={Boolean(anchorEl) && anchorEl.articleId === article.id}
+                                                            onClose={handleMenuClose}
+                                                        >
+                                                            <ArticleMenuItem
+                                                                handleClose={handleMenuClose}
+                                                                handleDelete={handleDeleteButtonClick}
+                                                                article={article}
+                                                            />
+                                                        </Menu>
+                                                    </Grid>
                                                 </Grid>
-                                            </Grid>
-                                        </Card>
-                                    </Grid>
-                                ))}
-                            </Grid>
+                                            </Card>
+                                        </Grid>
+                                    ))}
+                                </Grid>
+                            </InfiniteScroll>
                         </Box>
                     </Grid>
                 </Grid>
