@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, CircularProgress } from '@mui/material';
 import { REMOTE_ENDPOINT } from '../services/constants';
+import { a } from 'react-spring';
 
 
 const EditArticle = ({ article, onUpdate, onClose }) => {
@@ -20,26 +21,37 @@ const EditArticle = ({ article, onUpdate, onClose }) => {
 
     const handleRewrite = async () => {
         setLoading(true);
-        const response = await fetch(REMOTE_ENDPOINT + '/admin/rewrite', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('accessToken'),
-            },
-            body: JSON.stringify({
-                tweet_id: updatedArticle.id
-            })
-        });
-        if (response.ok) {
-            const data = await response.json();
-            setUpdatedArticle(prevArticle => ({
-                ...prevArticle,
-                title: data.title,
-                content: data.content
-            }));
+        try {
+            const response = await fetch(REMOTE_ENDPOINT + '/admin/rewrite', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('accessToken'),
+                },
+                body: JSON.stringify({
+                    tweet_id: updatedArticle.id
+                }),
+                timeout: 1000000
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setUpdatedArticle(prevArticle => ({
+                    ...prevArticle,
+                    title: data.title,
+                    content: data.content
+                }));
+            } else {
+                console.log('Failed to rewrite article:', response);
+                alert('Failed to rewrite article');
+            }
+        } catch (error) {
+            console.log('Failed to rewrite article due to timeout:', error);
+            alert('Failed to rewrite article due to timeout');
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
+
 
     return (
         <Dialog open onClose={onClose} fullWidth maxWidth="sm">
